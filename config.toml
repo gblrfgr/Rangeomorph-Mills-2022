@@ -1,0 +1,50 @@
+[fractal]
+transform-rotation = [
+    [
+        0.9698463,
+        0.0301537,
+        0.2418448,
+    ],
+    [
+        0.0301537,
+        0.9698463,
+        -0.2418448,
+    ],
+    [
+        -0.2418448,
+        0.2418448,
+        0.9396926,
+    ],
+]
+transform-scale = 0.1
+initial-length = 100
+depth = 4
+density = 6
+
+[hemisphere]
+radius = 4.1
+
+[simulation-field]
+width = 2.5
+depth = 2.5
+height = 1.25
+spatial-resolution = 5e-3
+
+[trial]
+temporal-resolution = 5e-2
+duration = 60
+population = 20
+
+[experiment]
+num-trials = 32
+
+[coefficients]
+initial-scale = 0.1
+
+[coefficients.background]
+diffusion = 1.0
+absorption = 0.0
+
+[coefficients.foreground]
+diffusion = 0.3
+absorption = 0.7
