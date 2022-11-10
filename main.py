@@ -2,7 +2,7 @@ import torch
 import scipy.stats
 import logging
 import math
-from typing import Iterable, Callable, Tuple
+import typing
 
 
 # Basic helper functions
@@ -55,7 +55,7 @@ def __line_draw(grid: torch.Tensor, origin: torch.Tensor, extent: torch.Tensor, 
 
 def __render_fractal(grid: torch.Tensor, position: torch.Tensor, color: float, initial_length: int,
                      depth: int, density: int, transform: torch.Tensor):
-    lines = __fractalize(position, torch.FloatTensor([0, initial_length, 0]),
+    lines = __fractalize(position, torch.Tensor([0, initial_length, 0]),
                          depth, transform, density)
     for line in lines:
         __line_draw(grid, line[0], line[1], color)
@@ -63,21 +63,21 @@ def __render_fractal(grid: torch.Tensor, position: torch.Tensor, color: float, i
 
 # Generators to create absorption and diffusion masks, since a lot of code is shared
 
-def gen_mask(shape: Tuple[int, int, int], bg: float, fg: float, population: int, render: Callable, rng: torch.Generator,
-             **kwargs) -> Iterable[torch.Tensor]:
+def gen_mask(shape: tuple[int, int, int], bg: float, fg: float, population: int, render: typing.Callable, rng: torch.Generator,
+             **kwargs) -> typing.Iterable[torch.Tensor]:
     while True:
-        grid = torch.ones(shape, device='cuda:0') * bg
+        grid = torch.ones(shape) * bg
         for _ in range(population):
-            render(grid, (0.8 * torch.rand(3, generator=rng) + 0.1) * torch.FloatTensor([shape[0], 0, shape[2]]),
+            render(grid, (0.8 * torch.rand(3, generator=rng) + 0.1) * torch.Tensor([shape[0], 0, shape[2]]),
                    fg, **kwargs)
         yield grid
 
 
 # Super basic generator for the initial concentration grid
 
-def gen_grid(shape: Tuple[int, int, int], scale: float) -> Iterable[torch.Tensor]:
+def gen_grid(shape: tuple[int, int, int], scale: float) -> typing.Iterable[torch.Tensor]:
     while True:
-        yield scale * torch.rand(shape, device='cuda:0')
+        yield scale * torch.rand(shape)
 
 
 # Actual code for running simulations!
@@ -90,16 +90,17 @@ def run_simulation(duration: int, fps: int, df_map: torch.Tensor, ab_map: torch.
     return grid
 
 
-def run_trials(df_gen: Iterable[torch.Tensor], ab_gen: Iterable[torch.Tensor],
-               grid_gen: Iterable[torch.Tensor], spatial_res: float, num_trials: int,
+def run_trials(df_gen: typing.Iterable[torch.Tensor], ab_gen: typing.Iterable[torch.Tensor],
+               grid_gen: typing.Iterable[torch.Tensor], spatial_res: float, num_trials: int,
                trial_duration: int, fps: int) -> torch.Tensor:
-    results = torch.zeros(num_trials, dtype=torch.float32, device='cpu:0')
+    results = torch.zeros(num_trials)
     for i in range(num_trials):
         df_map = next(df_gen)
         ab_map = next(ab_gen)
         grid = next(grid_gen)
-        logging.info(f"Running trial #{i + 1} of {num_trials}...")
+        logging.info(f"Running trial {i + 1} of {num_trials}...")
         trial = run_simulation(trial_duration, fps, df_map, ab_map, grid, spatial_res)
+        logging.info(f"Trial {i + 1} complete.")
         results[i] = score(trial, ab_map)
     return results
 
@@ -107,13 +108,19 @@ def run_trials(df_gen: Iterable[torch.Tensor], ab_gen: Iterable[torch.Tensor],
 def main():
     logging.basicConfig(format="%(levelname)s\t%(asctime)s:\t%(message)s", level=logging.INFO)
 
+    if not torch.cuda.is_available():
+        logging.warn("CUDA acceleration not available, defaulting to CPU.")
+        torch.set_default_tensor_type(torch.cpu.FloatTensor)
+    else:
+        torch.set_default_tensor_type(torch.cuda.FloatTensor)
+
     SHAPE = (500, 250, 500)
     FRACTAL_PARAMS = {"initial_length": 100,
                       "depth": 4,
                       "density": 6,
-                      "transform": 0.1 * torch.FloatTensor([[0.9698463, 0.0301537, 0.2418448],
-                                                            [0.0301537, 0.9698463, -0.2418448],
-                                                            [-0.2418448, 0.2418448, 0.9396926]])}
+                      "transform": 0.1 * torch.Tensor([[0.9698463, 0.0301537, 0.2418448],
+                                                       [0.0301537, 0.9698463, -0.2418448],
+                                                       [-0.2418448, 0.2418448, 0.9396926]])}
     COLONY_PARAMS = {"radius": 4.1}
     KD_ALT = 0.3
     KA_ALT = 0.7
@@ -126,12 +133,12 @@ def main():
     DURATION = 60
     FPS = 20
 
-    test_rng = torch.Generator()
+    test_rng = torch.Generator(device="cuda:0")
     orig_state = test_rng.get_state()
     df_test = gen_mask(SHAPE, KD_BASE, KD_ALT, POP, __render_fractal, test_rng, **FRACTAL_PARAMS)
     test_rng.set_state(orig_state)
     ab_test = gen_mask(SHAPE, KA_BASE, KA_ALT, POP, __render_fractal, test_rng, **FRACTAL_PARAMS)
-    control_rng = torch.Generator()
+    control_rng = torch.Generator(device="cuda:0")
     orig_state = control_rng.get_state()
     df_control = gen_mask(SHAPE, KD_BASE, KD_ALT, POP, __render_semisphere,
                           control_rng, **COLONY_PARAMS)
