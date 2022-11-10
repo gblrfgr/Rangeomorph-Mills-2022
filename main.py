@@ -3,6 +3,8 @@ import scipy.stats
 import logging
 import math
 import typing
+import toml
+import collections
 
 
 # Basic helper functions
@@ -18,6 +20,19 @@ def welch_p(x1: torch.Tensor, x2: torch.Tensor) -> float:
 
 def score(grid: torch.Tensor, ab_map: torch.Tensor) -> float:
     return (torch.mean(grid) / torch.mean(ab_map)).item()
+
+
+def toml_to_object(fields: dict, typename: str):
+    # convenience function, just to help with code aesthetics
+    sanitized_keys = [k.replace('-', '_') for k in fields.keys()]
+    res = collections.namedtuple(typename, sanitized_keys)
+    local_fields = fields.fromkeys(sanitized_keys)
+    for k, v in fields.items():
+        if isinstance(v, dict):
+            local_fields[k.replace('-', '_')] = toml_to_object(v, typename + "_" + k.replace('-', '_'))
+        else:
+            local_fields[k.replace('-', '_')] = v
+    return res(**local_fields)
 
 
 # Functions used to render individuals onto absorption and diffusion masks
@@ -108,30 +123,40 @@ def run_trials(df_gen: typing.Iterable[torch.Tensor], ab_gen: typing.Iterable[to
 def main():
     logging.basicConfig(format="%(levelname)s\t%(asctime)s:\t%(message)s", level=logging.INFO)
 
+    with open("config.toml", "r") as config_file:
+        cfg = toml_to_object(toml.load(config_file), "Config")
+
     if not torch.cuda.is_available():
         logging.warn("CUDA acceleration not available, defaulting to CPU.")
         torch.set_default_tensor_type(torch.cpu.FloatTensor)
     else:
         torch.set_default_tensor_type(torch.cuda.FloatTensor)
 
-    SHAPE = (500, 250, 500)
-    FRACTAL_PARAMS = {"initial_length": 100,
-                      "depth": 4,
-                      "density": 6,
-                      "transform": 0.1 * torch.Tensor([[0.9698463, 0.0301537, 0.2418448],
-                                                       [0.0301537, 0.9698463, -0.2418448],
-                                                       [-0.2418448, 0.2418448, 0.9396926]])}
-    COLONY_PARAMS = {"radius": 4.1}
-    KD_ALT = 0.3
-    KA_ALT = 0.7
-    KD_BASE = 1.0
-    KA_BASE = 0.0
-    POP = 20
-    SCALE_C = 0.03
-    SPATIAL_RES = 5e-3
-    NUM_TRIALS = 32
-    DURATION = 60
-    FPS = 20
+    SHAPE = (
+        int(cfg.simulation_field.width // cfg.simulation_field.spatial_resolution),
+        int(cfg.simulation_field.height // cfg.simulation_field.spatial_resolution),
+        int(cfg.simulation_field.depth // cfg.simulation_field.spatial_resolution)
+    )
+    SPATIAL_RES = cfg.simulation_field.spatial_resolution
+
+    FRACTAL_PARAMS = {"initial_length": cfg.fractal.initial_length,
+                      "depth": cfg.fractal.depth,
+                      "density": cfg.fractal.density,
+                      "transform": cfg.fractal.transform.scale *
+                      torch.Tensor(cfg.fractal.transform.rotation)}
+    COLONY_PARAMS = {"radius": cfg.hemisphere.radius}
+
+    KD_ALT = cfg.coefficients.foreground.diffusion
+    KA_ALT = cfg.coefficients.foreground.absorption
+    KD_BASE = cfg.coefficients.background.diffusion
+    KA_BASE = cfg.coefficients.background.absorption
+    SCALE_C = cfg.coefficients.initial_scale
+
+    POP = cfg.trial.population
+    DURATION = cfg.trial.duration
+    FPS = int(1 // cfg.trial.temporal_resolution)
+    
+    NUM_TRIALS = cfg.experiment.num_trials
 
     test_rng = torch.Generator(device="cuda:0")
     orig_state = test_rng.get_state()

@@ -1,5 +1,10 @@
 [fractal]
-transform-rotation = [
+initial-length = 100
+depth = 4
+density = 6
+
+[fractal.transform]
+rotation = [
     [
         0.9698463,
         0.0301537,
@@ -16,10 +21,7 @@ transform-rotation = [
         0.9396926,
     ],
 ]
-transform-scale = 0.1
-initial-length = 100
-depth = 4
-density = 6
+scale = 0.1
 
 [hemisphere]
 radius = 4.1
@@ -39,7 +41,7 @@ population = 20
 num-trials = 32
 
 [coefficients]
-initial-scale = 0.1
+initial-scale = 0.03
 
 [coefficients.background]
 diffusion = 1.0
