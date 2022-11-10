@@ -26,27 +26,27 @@ scale = 0.1
 [hemisphere]
 radius = 4.1
 
-[simulation-field]
+[field]
 width = 2.5
 depth = 2.5
 height = 1.25
-spatial-resolution = 5e-3
+spatial-res = 5e-3
 
 [trial]
-temporal-resolution = 5e-2
+temporal-res = 5e-2
 duration = 60
 population = 20
 
 [experiment]
 num-trials = 32
 
-[coefficients]
+[coeffs]
 initial-scale = 0.03
 
-[coefficients.background]
+[coeffs.bg]
 diffusion = 1.0
 absorption = 0.0
 
-[coefficients.foreground]
+[coeffs.fg]
 diffusion = 0.3
 absorption = 0.7
