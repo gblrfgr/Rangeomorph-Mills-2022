@@ -50,3 +50,6 @@ absorption = 0.0
 [coeffs.fg]
 diffusion = 0.3
 absorption = 0.7
+
+[logging]
+format = "%(levelname)s\t%(asctime)s:\t%(message)s"
