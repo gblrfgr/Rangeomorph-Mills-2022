@@ -83,7 +83,10 @@ def get_cmdline_args(argv: list[str]) -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "config", nargs=1, help="file to source configuration information from"
+        "config",
+        nargs=1,
+        help="file to source configuration information from",
+        default="config.toml",
     )
     arg_parser.add_argument(
         "-o",
