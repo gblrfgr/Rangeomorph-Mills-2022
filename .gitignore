@@ -1,2 +1,6 @@
 .vscode/settings.json
 __pycache__/main.cpython-310.pyc
+src/__pycache__/gridgen.cpython-310.pyc
+src/__pycache__/utils.cpython-310.pyc
+.gitignore
+src/__pycache__/experiment.cpython-310.pyc
