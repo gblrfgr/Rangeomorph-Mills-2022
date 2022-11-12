@@ -4,3 +4,8 @@ src/__pycache__/gridgen.cpython-310.pyc
 src/__pycache__/utils.cpython-310.pyc
 .gitignore
 src/__pycache__/experiment.cpython-310.pyc
+docs/.obsidian/app.json
+docs/.obsidian/appearance.json
+docs/.obsidian/core-plugins.json
+docs/.obsidian/hotkeys.json
+docs/.obsidian/workspace.json
