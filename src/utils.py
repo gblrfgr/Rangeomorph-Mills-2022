@@ -47,7 +47,7 @@ def score(grid: torch.Tensor, ab_map: torch.Tensor) -> float:
     return (torch.mean(grid) / torch.mean(ab_map)).item()
 
 
-def toml_to_object(fields: dict, typename: str):
+def toml_to_object(fields: dict, typename: str) -> object:
     """Converts a dictionary to a Python object recursively
 
     Args:
