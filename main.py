@@ -122,7 +122,7 @@ def main():
         for c, t in zip(control.tolist(), test.tolist()):
             writer.writerow({"Control situation scores": c, "Test situation scores": t})
 
-    logging.INFO(f"p = {utils.welch_p(control.cpu(), test.cpu())}")
+    logging.info(f"p = {utils.welch_p(control.cpu(), test.cpu())}")
 
 
 if __name__ == "__main__":
