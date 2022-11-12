@@ -1,15 +1,41 @@
 \documentclass[draft]{article}
+\usepackage[toc, page]{appendix}
+\usepackage[nottoc,notlot,notlof]{tocbibind}
 \begin{document}
-    \title{Numerical Simulation of Ediacaran Fauna}
-    \author{Juniper Mills}
-    \date{November 2022}
-    \maketitle
-    \begin{abstract}
-        ...
-    \end{abstract}
-    \tableofcontents
-    \section{Introduction}
-    \begin{thebibliography}{100}
-        
-    \end{thebibliography}
+\title{Numerical Simulation of Ediacaran Fauna}
+\author{Juniper Mills}
+\date{November 2022}
+\maketitle
+
+\begin{abstract}
+    ...
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+\subsection{The Ediacaran Ocean}
+\cite{mcnichol2018}
+\subsubsection{Rangeomorphs}
+\subsubsection{Chemosynthesis}
+\subsection{Numerical Simulation}
+\subsubsection{The Diffusion Equation}
+\subsubsection{The Finite Differences Method}
+\subsubsection{PyTorch and CUDA Acceleration}
+\section{Method}
+\subsection{Simulation}
+\subsubsection{Choosing Parameters}
+\subsection{Statistical Analysis}
+\section{Results}
+\section{Conclusion}
+
+\newpage
+\bibliography{references}
+\bibliographystyle{apalike}
+
+\newpage
+\begin{appendices}
+    \section{Code}
+    \section{Glossary}
+\end{appendices}
 \end{document}
