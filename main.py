@@ -23,8 +23,8 @@ def main():
 
     # Initialize coefficient grids
     if not torch.cuda.is_available():
-        logging.warn("CUDA acceleration not available, defaulting to CPU.")
-        torch.set_default_tensor_type(torch.cpu.FloatTensor)
+        logging.warning("CUDA acceleration not available, defaulting to CPU.")
+        torch.set_default_tensor_type(torch.FloatTensor)
     else:
         torch.set_default_tensor_type(torch.cuda.FloatTensor)
 
@@ -42,8 +42,10 @@ def main():
         * torch.Tensor(cfg.fractal.transform.rotation),
     }
     hemisphere_params = {"radius": cfg.hemisphere.radius}
-
-    test_rng = torch.Generator(device="cuda:0")
+    if torch.cuda.is_available():
+        test_rng = torch.Generator(device="cuda:0")
+    else:
+        test_rng = torch.Generator(device="cpu")
     orig_state = test_rng.get_state()
     df_test = gridgen.gen_mask(
         field_shape,
@@ -65,7 +67,10 @@ def main():
         **fractal_params,
     )
 
-    control_rng = torch.Generator(device="cuda:0")
+    if torch.cuda.is_available():
+        control_rng = torch.Generator(device="cuda:0")
+    else:
+        control_rng = torch.Generator(device="cpu")
     orig_state = control_rng.get_state()
     df_control = gridgen.gen_mask(
         field_shape,
